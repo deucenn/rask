@@ -1,0 +1,9 @@
+[package]
+name = "rust-todolist"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = "4.6.7"
+serde = { version = "1.0.229", features = ["derive"] } 
+serde_json = "1.0.151"
