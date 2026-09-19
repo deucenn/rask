@@ -1,63 +1,42 @@
-// use std::{fs::File, io::{Read, Write}};
-
-// fn main() {
-//     let file_path = "output.txt";
-
-//     // create file
-//     let mut file = File::create(file_path).expect("File cant be found or created");
-    
-//     // write to file
-//     file.write_all(b"first try").expect("Content couldnt be written");
-//     println!("Content was written to file");
-
-//     let mut content = String::new();
-//     file.read_to_string(&mut content).expect("Cant read contents of file");
-
-//     println!("Content: {}", content);
-// }
-
+use std::error::Error;
+use std::fs;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Error, Write};
-//use clap;
-use serde::Serialize; 
+use std::io::Write;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize)]
-struct User {
-    name: String,
-    age: u8,
+#[derive(Serialize, Deserialize, Debug)]
+struct Todo {
+    id: u8,
+    title: String,
+    done: bool,
 } 
 
-fn main() -> Result<(), Error> {
-    let user = User {
-        name: "Bob".to_string(),
-        age: 30,
+fn main() -> Result<(), Box<dyn Error>> {
+    let file_path = "saves.json";
+
+    // init json file
+    let mut todos: Vec<Todo> = if fs::metadata(file_path).is_ok() {
+        let content = fs::read_to_string(file_path)?;
+        serde_json::from_str(&content).unwrap_or_default()
+    } else {
+        Vec::new()
+    };
+    
+    println!("{:?}", todos);
+
+    let new_todo = Todo {
+        id: (todos.len() as u8) + 1,
+        title: "Work".to_string(),
+        done: false,
     };
 
-    let path = "output.txt";
-    let json_data = serde_json::to_string(&user).expect("Failed to serialize user");
- 
-    let file = File::create(path)?;
-    let mut json_file = File::create("user.json").expect("Failed to create json file");
+    todos.push(new_todo);
 
-    json_file.write_all(json_data.as_bytes()).expect("Cant write to json file");
+    let json_data = serde_json::to_string_pretty(&todos)?;
+    
+    // save todos
+    fs::write(file_path, json_data);
     println!("Json Data is written");
     
-    let mut writer = BufWriter::new(file);
-    
-    // These writes go into an in-memory buffer, not directly to disk.
-    writeln!(writer, "line one")?;
-    writeln!(writer, "line two")?;
-    writeln!(writer, "line three")?;    
-    writeln!(writer, "line four")?;
-
-    writer.flush()?;
-
-    let input = File::open(path)?;
-    let buffered = BufReader::new(input);
-
-    for line in buffered.lines() {
-        println!("{}", line?);
-    }
-
     Ok(())
 }
