@@ -41,6 +41,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // get args from cli
     let args = Args::parse();
 
+    // moved the save filen location to the app data folder
     let mut app_dir = dirs::data_local_dir().expect("cant find app data folder");
     app_dir.push("rask");
 
