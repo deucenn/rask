@@ -20,8 +20,12 @@ enum Commands {
     },
     /// list all todos - USAGE: rask list
     List,
-    /// change todo status - USAGE: rask done [id]
+    /// change todo status to done - USAGE: rask done [id]
     Done {
+        id: usize,
+    },
+    /// change todo status to undone -- USAGE: rask undone [id]
+    Undone {
         id: usize,
     },
     /// delete todo - USAGE: rask delete [id]             
@@ -100,7 +104,16 @@ fn main() -> Result<(), Box<dyn Error>> {
             } else {
                 println!("can't find todo");
             };
+        }
+        Commands::Undone{id} => {
+            if let Some(todo) = todos.iter_mut().find(|t| t.id == *id) {
+                todo.done = false;
+                println!("todo {} is marked as undone", id);
 
+                rewrite_file = true;
+            } else {
+                println!("can't find todo");
+            }
         }
         Commands::Delete{id} => {
             let initial_len = todos.len();
