@@ -2,6 +2,7 @@ use std::error::Error;
 use std::fs;
 use serde::{Deserialize, Serialize};
 use clap::{Parser, Subcommand};
+use dirs;
 
 #[derive(Parser)]
 #[command(name = "rask")]
@@ -40,11 +41,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     // get args from cli
     let args = Args::parse();
 
-    let file_path = "saves.json";
+    let mut app_dir = dirs::data_local_dir().expect("cant find app data folder");
+    app_dir.push("rask");
+
+    fs::create_dir_all(&app_dir)?;
+
+    let file_path = app_dir.join("saves.json");
 
     // get data from json file, if no data new Vec
-    let mut todos: Vec<Todo> = if fs::metadata(file_path).is_ok() {
-        let content = fs::read_to_string(file_path)?;
+    let mut todos: Vec<Todo> = if fs::metadata(&file_path).is_ok() {
+        let content = fs::read_to_string(&file_path)?;
         serde_json::from_str(&content).unwrap_or_default()
     } else {
         Vec::new()

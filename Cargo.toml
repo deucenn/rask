@@ -1,5 +1,5 @@
 [package]
-name = "rust-todolist"
+name = "rask"
 version = "0.1.0"
 edition = "2024"
 
@@ -7,3 +7,4 @@ edition = "2024"
 serde = { version = "1.0.229", features = ["derive"] } 
 serde_json = "1.0.151"
 clap = { version = "4.6.4", features = ["derive"] }
+dirs = "7.0.0"
