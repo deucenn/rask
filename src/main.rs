@@ -1,7 +1,5 @@
 use std::error::Error;
 use std::fs;
-use std::fs::File;
-use std::io::Write;
 use serde::{Deserialize, Serialize};
 use clap::{Parser, Subcommand};
 
@@ -15,18 +13,18 @@ struct Args {
 
 #[derive(Subcommand)]
 enum Commands {
-    // add todo
-    add {
+    /// add todo
+    Add {
         title: String,
     },
-    // list all todos
-    list,
-    // change todo status
-    done {
+    /// list all todos
+    List,
+    /// change todo status
+    Done {
         id: u8,
     },
-    // delete todo              
-    delete {
+    /// delete todo              
+    Delete {
         id: u8,
     }
 }
@@ -51,17 +49,21 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else {
         Vec::new()
     };
+
+    // logic for id creation, always takes the biggest and adds 1
+    let max_id = todos.iter().map(|t| t.id).max().unwrap_or(0);
+    let new_id = max_id + 1;
     
     // handle cli args
     match &args.command {
-        Commands::add{title} => {
+        Commands::Add{title} => {
             todos.push(Todo {
-                id: (todos.len() as u8) + 1,
+                id: new_id,
                 title: title.clone(),
                 done: false,
             });
         }
-        Commands::list => {
+        Commands::List => {
             if todos.is_empty() {
                 println!("no todos in this list");
             } else {
@@ -76,34 +78,30 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
-        Commands::done{id} => {
-            let index: usize = (id - 1).into();
-            let mut todo_found: bool = false;
-            for todo in &todos {
-                if *id == todo.id {
-                    todo_found = true;
-                }
-            };
-
-            if todo_found == false {
-                println!("cant find todo {}", id);
+        Commands::Done{id} => {
+            if let Some(todo) = todos.iter_mut().find(|t| t.id == *id) {
+                todo.done = true;
+                println!("todo {} is marked as done", id);
             } else {
-                if todos[index].done == false {
-                    todos[index].done = true;
-                }
+                println!("can't find todo");
             }
         }
-        Commands::delete{id} => {
-            let index: usize = (id - 1).into();
-            todos.remove(index);
-            println!("todo {} got removed", id);
+        Commands::Delete{id} => {
+            let initial_len = todos.len();
+            todos.retain(|t| t.id != *id);
+
+            if todos.len() < initial_len {
+                println!("todo {} got removed", id);
+            } else {
+                println!("cant find todo {}", id);
+            }
         }
     }
 
     let json_data = serde_json::to_string_pretty(&todos)?;
     
     // save todos
-    fs::write(file_path, json_data);
+    fs::write(file_path, json_data)?;
     println!("Updated your todos.");
     
     Ok(())
