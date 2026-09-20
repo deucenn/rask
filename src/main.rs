@@ -3,6 +3,7 @@ use std::fs;
 use serde::{Deserialize, Serialize};
 use clap::{Parser, Subcommand};
 use dirs;
+use chrono::{Local};
 
 #[derive(Parser)]
 #[command(name = "rask")]
@@ -39,6 +40,7 @@ struct Todo {
     id: usize,
     title: String,
     done: bool,
+    creation_date: String,
 } 
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -72,10 +74,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             let max_id = todos.iter().map(|t| t.id).max().unwrap_or(0);
             let new_id = max_id + 1;
 
+            // get current time
+            let date_now = Local::now().format("%y/%m/%d").to_string();
+
             todos.push(Todo {
                 id: new_id,
                 title: title.clone(),
                 done: false,
+                creation_date: date_now,
             });
             
             rewrite_file = true;
@@ -91,7 +97,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     } else {
                         "Not done"
                     };
-                    println!("id: {}: {}, status: {}", todo.id, todo.title, status);
+                    println!("id: {}: {}, status: {}, created: {}", todo.id, todo.title, status, todo.creation_date);
                 }
             }
         }
