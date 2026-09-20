@@ -119,3 +119,64 @@ fn main() -> Result<(), Box<dyn Error>> {
     
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+   #[test]
+    fn test_add_todo_and_id_generation() {
+        let mut todos = Vec::new();
+
+        // add first test
+        let max_id = todos.iter().map(|t: &Todo| t.id).max().unwrap_or(0);
+        todos.push(Todo {
+            id: max_id + 1,
+            title: "Test 1".to_string(),
+            done: false,
+        });
+        
+        // second test
+        let max_id = todos.iter().map(|t: &Todo| t.id).max().unwrap_or(0);
+        todos.push(Todo {
+            id: max_id + 1,
+            title: "Test 2".to_string(),
+            done: false,
+        });
+
+        assert_eq!(todos.len(), 2);
+        assert_eq!(todos[0].id, 1);
+        assert_eq!(todos[1].id, 2);
+    }
+
+    #[test]
+    fn test_mark_done() {
+        let mut todos = vec![Todo {
+            id: 1,
+            title: "Shopping".to_string(),
+            done: false,
+        }];
+
+        if let Some(todo) = todos.iter_mut().find(|t| t.id == 1) {
+            todo.done = true;
+        }
+
+        assert!(todos[0].done);
+    }
+
+    #[test]
+    fn test_delete_todo() {
+        let mut todos = vec![
+            Todo { id: 1, title: "Task 1".to_string(), done: false },
+            Todo { id: 2, title: "Task 2".to_string(), done: false },
+        ];
+
+        let initial_len = todos.len();
+        todos.retain(|t| t.id != 1);
+
+        assert_eq!(todos.len(), 1);
+        assert_eq!(todos[0].id, 2);
+        assert!(todos.len() < initial_len);
+    }
+}
+
