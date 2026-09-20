@@ -13,25 +13,25 @@ struct Args {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// add todo
+    /// add todo - USAGE: rask add [title] 
     Add {
         title: String,
     },
-    /// list all todos
+    /// list all todos - USAGE: rask list
     List,
-    /// change todo status
+    /// change todo status - USAGE: rask done [id]
     Done {
-        id: u8,
+        id: usize,
     },
-    /// delete todo              
+    /// delete todo - USAGE: rask delete [id]             
     Delete {
-        id: u8,
+        id: usize,
     }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Todo {
-    id: u8,
+    id: usize,
     title: String,
     done: bool,
 } 
@@ -50,18 +50,24 @@ fn main() -> Result<(), Box<dyn Error>> {
         Vec::new()
     };
 
-    // logic for id creation, always takes the biggest and adds 1
-    let max_id = todos.iter().map(|t| t.id).max().unwrap_or(0);
-    let new_id = max_id + 1;
     
+    // helper to see if file needs to get rewritten
+    let mut rewrite_file = false;
+
     // handle cli args
     match &args.command {
         Commands::Add{title} => {
+            // logic for id creation, always takes the biggest and adds 1
+            let max_id = todos.iter().map(|t| t.id).max().unwrap_or(0);
+            let new_id = max_id + 1;
+
             todos.push(Todo {
                 id: new_id,
                 title: title.clone(),
                 done: false,
             });
+            
+            rewrite_file = true;
         }
         Commands::List => {
             if todos.is_empty() {
@@ -82,9 +88,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             if let Some(todo) = todos.iter_mut().find(|t| t.id == *id) {
                 todo.done = true;
                 println!("todo {} is marked as done", id);
+                
+                rewrite_file = true;
             } else {
                 println!("can't find todo");
-            }
+            };
+
         }
         Commands::Delete{id} => {
             let initial_len = todos.len();
@@ -92,17 +101,21 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             if todos.len() < initial_len {
                 println!("todo {} got removed", id);
+                rewrite_file = true;
             } else {
                 println!("cant find todo {}", id);
-            }
+            };
+
         }
     }
 
-    let json_data = serde_json::to_string_pretty(&todos)?;
     
     // save todos
-    fs::write(file_path, json_data)?;
-    println!("Updated your todos.");
+    if rewrite_file {
+        let json_data = serde_json::to_string_pretty(&todos)?;
+        fs::write(file_path, json_data)?;
+        println!("Updated your todos.");
+    }
     
     Ok(())
 }
