@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use chrono::{Local};
+use comfy_table::{Cell, ContentArrangement, Row, Table};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Todo {
@@ -19,19 +20,22 @@ impl TodoList {
     }
 
     pub fn list(&self) {
-        if self.items.is_empty() {
-            println!("no todos in this list");
-        } else {
-            println!("your todos:");
-            for todo in &self.items {
-                let status = if todo.done {
-                    "Done"
-                } else {
-                    "Not done"
-                };
-                println!("id: {}: {}, status: {}, created: {}", todo.id, todo.title, status, todo.creation_date);
-            }
+        let mut table = Table::new();
+        table.set_content_arrangement(ContentArrangement::Dynamic);
+        table.set_width(85);
+        table.set_header(vec!["ID","Task","Status","Created"]);
+
+        for todo in &self.items {
+            let status = if todo.done {
+                "Done"
+            } else {
+                "Not done"
+            };
+
+            table.add_row([todo.id.to_string(), todo.title.clone(), status.to_string(), todo.creation_date.to_string()]);
         }
+
+        println!("{table}");
     }
     
     pub fn add(&mut self, title: String) {
@@ -77,5 +81,10 @@ impl TodoList {
         } else {
             println!("cant find todo {}", id);
         }
+    }
+
+    pub fn clear(&mut self) {
+        let initial_len = self.items.len();
+        self.items.retain(|t| t.done == false);
     }
 }

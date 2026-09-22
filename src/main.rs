@@ -41,6 +41,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             storage::save_todos(&file_path, &todo_list.items)?;
             todo_list.list();
         }
+        Commands::Clear => {
+            todo_list.clear();
+            storage::save_todos(&file_path, &todo_list.items)?;
+            todo_list.list();
+        }
     }
 
     Ok(())

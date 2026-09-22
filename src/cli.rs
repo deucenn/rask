@@ -19,4 +19,6 @@ pub enum Commands {
     Undone { id: usize },
     /// delete todo - USAGE: rask delete [id]
     Delete { id: usize },
+    /// deletes all done tasks - USAGE: rask clear
+    Clear,
 }
